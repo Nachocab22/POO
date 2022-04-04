@@ -1,4 +1,7 @@
 #include <ctime>
+#include <new>
+#include <iomanip>
+#include <cstdio>
 #include <iostream>
 #include "fecha.hpp"
 
@@ -75,6 +78,9 @@ Fecha::Fecha(int d, int m, int a): dia_(d), mes_(m), anno_(a)
 
 Fecha::Fecha(const char* c)
 {
+    dia_ = -2; 
+    mes_ = -2;
+    anno_ = -2;
     sscanf(c, "%d/%d/%d", &dia_, &mes_, &anno_);
 
     std::time_t tiempo_calendario = std::time(0);
@@ -84,26 +90,22 @@ Fecha::Fecha(const char* c)
     if(mes_ == 0) mes_ = tiempo_descompuesto->tm_mon + 1;
     if(dia_ == 0) dia_ = tiempo_descompuesto->tm_mday;
 
-    corregir();
+    if(!valida()) throw Fecha::Invalida ("Fecha invalida");
 }
 
-Fecha::Fecha(const Fecha &f): dia_(f.dia()), mes_(f.mes()), anno_(f.anno())
-{
-    corregir();
-}
-
-Fecha::operator const char*() const
-{
-    char *aux = new char[40];
-    tm f= {};
+//Constructor de conversion
+const char* Fecha::cadena() const{
+    
+    static char* buffer = new char[40];
+    tm f = {};
     f.tm_mday = dia_;
     f.tm_mon = mes_ - 1;
     f.tm_year = anno_ - 1900;
 
     mktime(&f);
-    strftime(aux, 40, "%A, %d de %B de %Y", &f);
+    strftime(buffer, 40, "%A %d de %B de %Y", &f);
 
-    return aux;
+    return buffer;
 }
 
 //Destructor
@@ -112,70 +114,59 @@ Fecha::~Fecha(){dia_ = 0; mes_ = 0; anno_ = 0;}
 
 //Operadores
 
-Fecha Fecha::operator++()
+Fecha& Fecha::operator++()
 {
     *this+=1;
+    return *this;
+}
+
+Fecha Fecha::operator++(int)
+{
+    Fecha f(*this);
+    *this +=(1);
+    return f;
+}
+
+Fecha& Fecha::operator+=(int dias)
+{
+    this->dia_ += dias;
+
     corregir();
     return *this;
 }
 
-Fecha& Fecha::operator++(int)
-{
-    Fecha *f = new Fecha(0);
-    *f = *this;
-    *this += 1;
-    corregir();
-    return *f; 
-}
-
-Fecha Fecha::operator+=(int dias)
-{
-    dia_ = dias;
-    corregir();
-    return *this;
-}
-
-Fecha Fecha::operator--()
+Fecha& Fecha::operator--()
 {
     *this-=1;
-    corregir();
     return *this;
 }
 
-Fecha& Fecha::operator--(int)
+Fecha Fecha::operator--(int)
 {
-    Fecha *f = new Fecha(0);
-    *f = *this;
+    Fecha f(*this);
     *this -= 1;
-    corregir();
-    return *f;
+    return f;
 }
 
-Fecha Fecha::operator-=(int dias)
+Fecha& Fecha::operator-=(int dias)
 {
-    dia_ = dias;
-    corregir();
+    *this -=(dias);
     return *this;
 }
-
-//Observador 
-inline int Fecha::dia() const {return dia_;}
-inline int Fecha::mes() const {return mes_;}
-inline int Fecha::anno() const {return anno_;}
 
 //Op. aritmeticos
-Fecha operator+(const Fecha f, int dias)
+Fecha Fecha::operator+(int dia) const
 {
-    Fecha t(f);
-    t += dias;
-    return t;
+    Fecha f(*this);
+    f +=(dia);
+    return f;
 }
 
-Fecha operator-(const Fecha f, int dias)
+Fecha Fecha::operator-(int dia) const
 {
-    Fecha t(f);
-    t -= dias;
-    return t;
+    Fecha f(*this);
+    f -=(dia);
+    return f;
 }
 
 //Op. logicos
@@ -217,23 +208,25 @@ bool operator >=(const Fecha& a, const Fecha& b)
 
 //Entrada - salida
 
-std::ostream& operator<<(std::ostream& os, const Fecha& f)
+std::ostream& operator<<(std::ostream& os, const Fecha& f)noexcept
 {
-    setlocale(LC_ALL,"");
-        os<<f.dia()<<"/"<<f.mes()<<"/"<<f.anno();
+    os<<f.cadena();
     return os;
 }
 
 std::istream& operator>>(std::istream& is, Fecha& f)
 {
-    setlocale(LC_ALL,"");
     char* s = new char[11];
+    is.width(11); 
     is >> s;
-    Fecha f2(s);
-    f = f2;
+    try{
+        f = s;
+    }catch(Fecha::Invalida i){
+        is.setstate(std::ios::failbit);
+        delete[] s;
+        throw Fecha::Invalida("Error de formato en el operador >>. Se esperaba dd/mm/aaaa");
+    }
     delete[] s;
-    is.ignore();
 
     return is;
-
 }

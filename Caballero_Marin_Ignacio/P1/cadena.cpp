@@ -16,27 +16,28 @@ Cadena::Cadena(size_t l, char c): s_(new char[l + 1]), tam_(l)
 
 Cadena::Cadena(const Cadena& c): s_{new char[c.tam_ + 1]}, tam_{c.tam_} {copiar(c);}
 Cadena::Cadena(const char* s): s_{new char[length(s) + 1]}, tam_{length(s)} {copiar(s);}
+Cadena::Cadena(Cadena&& c): tam_(c.tam_), s_(c.s_)
+{
+    c.tam_ = 0;
+    c.s_ = nullptr;
+}
+
+//Destructor
 Cadena::~Cadena()
 {
     tam_ = 0;
     delete[] s_;
 }
 
-//Observadores
-inline const char* Cadena::puts()       {return s_;}
-inline const char* Cadena::puts() const {return s_;}
-
 //Funciones
-size_t Cadena::length() {return tam_;}
-const size_t Cadena::length() const {return tam_;}
-size_t Cadena::length(const char* s)
+size_t Cadena::length(const char* s)noexcept
 {
     int i = 0;
     while (s[i]) i++;
     return i;
     
 }
-const size_t Cadena::length(const char* s) const
+const size_t Cadena::length(const char* s) const noexcept
 {
     int i = 0;
     while (s[i]) i++;
@@ -89,9 +90,19 @@ Cadena& Cadena::operator= (const char* c)
     return *this;
 }
 
+Cadena& Cadena::operator= (Cadena&& c)
+{
+    tam_ = c.tam_;
+    delete[] s_;
+    s_ = c.s_;
+    c.tam_ = 0;
+    c.s_ = nullptr;
+    return *this;
+}
+
 //Op. indice
-char& Cadena::operator[] (size_t i){return s_[i];}
-const char& Cadena::operator[] (size_t i) const {return s_[i];}
+char& Cadena::operator[] (size_t i) noexcept{return s_[i];}
+const char& Cadena::operator[] (size_t i) const noexcept{return s_[i];}
 char& Cadena::at(size_t i)
 {
     if(i < tam_) return s_[i];
@@ -99,15 +110,25 @@ char& Cadena::at(size_t i)
         throw std::out_of_range("Funcion at(): indice fuera de rango de la Cadena");
     }
 }
-Cadena Cadena::substr(size_t i, size_t fin) const
+
+const char& Cadena::at(size_t i) const
 {
-    if(i > tam_ || fin > tam_){
+    if(i < tam_) return s_[i];
+    else {
+        throw std::out_of_range("Funcion at(): indice fuera de rango de la Cadena");
+    }
+}
+
+Cadena Cadena::substr(size_t i, size_t tam) const
+{
+    if(i > tam_ || tam > tam_ || (i + tam) > tam_){
         throw std::out_of_range("Funcion substr(): indice fuera de rango");
     }
-    if(i > fin) std::swap(i,fin);
-    Cadena caux(fin - i + 1);
+
+    char *caux = new char[tam + 1];
     int j = 0;
-    while (i <= fin)
+    unsigned int fin = i + tam;
+    while (i < fin)
     {
         caux[j] = s_[i];
         i++;
@@ -115,7 +136,10 @@ Cadena Cadena::substr(size_t i, size_t fin) const
     }
 
     caux[j] = '\0';
-    return caux;
+    Cadena cc(caux);
+    delete[] caux;
+
+    return cc;
 }
 
 //FUNCIONES PRIVADAS
@@ -155,6 +179,7 @@ bool operator==(const Cadena& a, const Cadena& b)
         if(a.at(i) != b.at(i))
             return false;
     }
+    return true;
 }
 
 bool operator!=(const Cadena& a, const Cadena& b) {return !(a == b);}
@@ -182,3 +207,18 @@ bool operator<=(const Cadena& a, const Cadena& b)
     return a < b;
 }
 
+//Entrada - Salida
+std::ostream& operator<<(std::ostream& os, const Cadena& c)noexcept
+{
+    os << c.c_str();
+    return os;
+}
+
+std::istream& operator>>(std::istream& is, Cadena& c)noexcept
+{
+    char s[33] = "";
+    is.width(33);
+    is >> s;
+    c = s;
+    return is;
+}

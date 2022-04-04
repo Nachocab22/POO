@@ -20,29 +20,31 @@ class Fecha
         //Constructores
         explicit Fecha(int d = 0, int m = 0, int a = 0);
         Fecha(const char* c);
-        Fecha(const Fecha &f); //Constructor de copia
-        operator const char* () const; //Conversor a const char*
+        //Fecha(const Fecha &f); //Constructor de copia
+        const char* cadena() const; //Constructor de conversion
 
         //Destructor
         ~Fecha();
 
         //Operadores
-        Fecha operator ++();
-        Fecha& operator ++(int);
-        Fecha operator +=(int dias);
+        Fecha& operator ++();
+        Fecha operator ++(int);
+        Fecha& operator +=(int dias);
+        Fecha operator+(int dia) const;
 
-        Fecha operator --();
-        Fecha& operator --(int);
-        Fecha operator -=(int dias);
+        Fecha& operator --();
+        Fecha operator --(int);
+        Fecha& operator -=(int dias);
+        Fecha operator-(int dia) const;
         
         //Observadores
-        int dia() const;
-        int mes() const;
-        int anno() const;
+        int dia() const noexcept{return dia_;};
+        int mes() const noexcept{return mes_;};
+        int anno() const noexcept{return anno_;};
 
     private:
 
-        int dia_, mes_, anno_;
+        int dia_, mes_, anno_, annoAct_;
 
         void corregir();
         bool valida() const;
@@ -62,7 +64,7 @@ bool operator <=(const Fecha& a, const Fecha& b);
 bool operator >=(const Fecha& a, const Fecha& b);
 
 //Entrada - salida
-std::ostream& operator<<(std::ostream& os, const Fecha& f);
+std::ostream& operator<<(std::ostream& os, const Fecha& f)noexcept;
 std::istream& operator>>(std::istream& is, Fecha& f);
 
 #endif
