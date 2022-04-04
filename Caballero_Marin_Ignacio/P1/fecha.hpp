@@ -52,8 +52,8 @@ class Fecha
 };
 
 //Op. aritmeticos
-Fecha operator +(const Fecha f, int dias);
-Fecha operator -(const Fecha f, int dias);
+//Fecha operator +(const Fecha f, int dias);
+//Fecha operator -(const Fecha f, int dias);
 
 //Op. logicos
 bool operator ==(const Fecha& a, const Fecha& b);

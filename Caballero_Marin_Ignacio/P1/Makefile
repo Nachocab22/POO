@@ -1,7 +1,7 @@
 EXES = test-P1-auto test-P1-consola
 CXX = g++
-CXXFLAGS = -g -Wall -std=c++14 -pedantic
-CPPFLAGS = -DP0 -I../Test-auto -l
+CXXFLAGS = -g -Wall -std=c++11 -pedantic
+CPPFLAGS = -DP1 -I../Test-auto -I.
 VPATH = ../Tests-auto:.
 
 CLASSES = cadena.o fecha.o

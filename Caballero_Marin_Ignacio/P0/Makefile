@@ -1,6 +1,6 @@
 EXES = test-P0-auto test-P0-consola
 CXX = g++
-CXXFLAGS = -g -Wall -std=c++10 -pedantic
+CXXFLAGS = -g -Wall -std=c++11 -pedantic
 CPPFLAGS = -DP0 -I../Test-auto -l
 VPATH = ../Tests-auto:.
 
